@@ -6,33 +6,34 @@ plugins {
 }
 
 group = 'com.glencoesoftware.omero'
-version = '0.6.2-SNAPSHOT'
+version = '0.7.0-SNAPSHOT'
 
-sourceCompatibility = 1.11
-targetCompatibility = 1.11
+compileJava {
+    options.release = 11
+}
 
 repositories {
     mavenCentral()
     maven {
-        name 'Unidata'
-        url 'https://artifacts.unidata.ucar.edu/repository/unidata-releases/'
+        name = 'Unidata'
+        url = 'https://artifacts.unidata.ucar.edu/repository/unidata-releases/'
     }
     maven {
-        url 'https://artifacts.glencoesoftware.com/artifactory/ome.releases'
+        url = 'https://artifacts.glencoesoftware.com/artifactory/ome.releases'
     }
     maven {
-        url 'https://artifacts.glencoesoftware.com/artifactory/ome.external'
+        url = 'https://artifacts.glencoesoftware.com/artifactory/ome.external'
     }
     maven {
-        url 'https://artifacts.glencoesoftware.com/artifactory/scijava-thirdparty'
+        url = 'https://artifacts.glencoesoftware.com/artifactory/scijava-thirdparty'
     }
     maven {
-        url 'https://repo.glencoesoftware.com/repository/bioformats2raw2ometiff/'
+        url = 'https://repo.glencoesoftware.com/repository/bioformats2raw2ometiff/'
     }
 }
 
 dependencies {
-    api 'org.openmicroscopy:omero-blitz:5.8.3'
+    api 'org.openmicroscopy:omero-blitz:5.8.4'
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
     implementation 'dev.zarr:jzarr:0.4.2'
     implementation 'org.lasersonlab:s3fs:2.2.3'
@@ -65,7 +66,7 @@ publishing {
 
     repositories {
         maven {
-            url 'https://artifacts.glencoesoftware.com/artifactory/gs-omero-snapshots-local/'
+            url = 'https://artifacts.glencoesoftware.com/artifactory/gs-omero-snapshots-local/'
             credentials {
                username = project.properties.ArtifactoryUserName
                password = project.properties.ArtifactoryPassword
