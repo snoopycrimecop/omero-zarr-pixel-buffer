@@ -89,11 +89,12 @@ functionality to import OME-Zarr labels and/or images.
 
 ## Development
 
-Clone the repository:
+As of 0.7.0, Java 17 LTS is the minimum build requirement. Clone the
+repository:
 
     git clone https://github.com/glencoesoftware/omero-zarr-pixel-buffer
 
-Run the Gradle build including the tests
+Run the Gradle build including the tests:
 
     ./gradlew build
 
