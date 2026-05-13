@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -129,8 +131,12 @@ public class ZarrStore {
             }
 
             URI endpoint = new URI("https://" + host);
-            S3ClientBuilder clientBuilder = S3Client.builder().endpointOverride(endpoint)
-                .region(Region.US_EAST_1); // Default region required even for non-AWS
+
+            S3ClientBuilder clientBuilder =  S3Client.builder()
+                    .httpClientBuilder(UrlConnectionHttpClient.builder()
+                            .socketTimeout(Duration.ofMinutes(5)));
+            clientBuilder.endpointOverride(endpoint);
+            clientBuilder.region(Region.US_EAST_1); // Default region required even for non-AWS
 
             S3Configuration s3Config = S3Configuration.builder().pathStyleAccessEnabled(true)
                 .build();
