@@ -166,7 +166,7 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
         }
 
         Long entityId = externalInfo.getEntityId();
-        if (entityType == null) {
+        if (entityId == null) {
             log.debug("{}:{} missing ExternalInfo entityId", object.getClass().getSimpleName(),
                 object.getId());
             return null;
