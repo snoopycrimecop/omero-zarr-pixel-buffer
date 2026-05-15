@@ -15,8 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -119,9 +117,9 @@ public class ZarrStore {
             }
             // Extract URL parameters for authentication
             Map<String, String> params = new HashMap<>();
-            // Encode to avoid java.net.URISyntaxException
-            String encodedPath = URLEncoder.encode(orgPath, StandardCharsets.UTF_8);
-            String query = (new URI(encodedPath)).getQuery();
+            // TODO: Is there a better way for parsing query parameters
+            // in the presence of URL unsafe characters?
+            String query = orgPath.substring(orgPath.lastIndexOf("?") + 1);
             if (query != null) {
                 String[] pairs = query.split("&");
                 for (String pair : pairs) {
