@@ -89,15 +89,14 @@ public class ZarrStore {
             throw new IllegalArgumentException("Path is not a .zarr");
         }
         String pathToZarr = orgPath.substring(0, zarrIndex + 5);
-        URI uri = new URI(path);
-        if (uri.getScheme() == null || uri.getScheme().equals("file")) {
+        if (!path.contains("://") || path.startsWith("file")) {
             int sep = path.lastIndexOf(File.separator);
             String storePath = path.substring(0, sep);
             String rest = path.substring(sep + 1);
             this.name = path.substring(pathToZarr.lastIndexOf(File.separator) + 1);
             store = new FilesystemStore(storePath).resolve(rest);
             iface = FilesystemStore.class;
-        } else if (uri.getScheme().startsWith("http")) {
+        } else if (path.startsWith("http")) {
             int sep = path.lastIndexOf("/");
             String storePath = path.substring(0, sep);
             String rest = path.substring(sep + 1);
@@ -107,7 +106,7 @@ public class ZarrStore {
             }
             store = new HttpStore(storePath).resolve(rest);
             iface = HttpStore.class;
-        } else if (uri.getScheme().startsWith("s3")) {
+        } else if (path.startsWith("s3")) {
             String[] tmp = path.replaceFirst("s3://", "").replaceAll("\\?.+", "").split("/");
             final String host = tmp[0];
             final String bucket = tmp[1];
@@ -118,7 +117,9 @@ public class ZarrStore {
             }
             // Extract URL parameters for authentication
             Map<String, String> params = new HashMap<>();
-            String query = (new URI(orgPath)).getQuery();
+            // TODO: Is there a better way for parsing query parameters
+            // in the presence of URL unsafe characters?
+            String query = orgPath.substring(orgPath.lastIndexOf("?") + 1);
             if (query != null) {
                 String[] pairs = query.split("&");
                 for (String pair : pairs) {
@@ -161,7 +162,8 @@ public class ZarrStore {
             store = new S3Store(client, bucket, null).resolve(rest);
             iface = S3Store.class;
         } else {
-            throw new IllegalArgumentException("Unsupported URI scheme: " + uri.getScheme());
+            throw new IllegalArgumentException("Unsupported URI scheme: "
+                    + path.subSequence(0, path.indexOf("://") + 3));
         }
         Group group = Group.open(store);
         if (group instanceof dev.zarr.zarrjava.v2.Group) {
