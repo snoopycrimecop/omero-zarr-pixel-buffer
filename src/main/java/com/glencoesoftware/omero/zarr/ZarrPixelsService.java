@@ -25,6 +25,8 @@ import dev.zarr.zarrjava.core.Array;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import ome.api.IQuery;
 import ome.conditions.LockTimeout;
@@ -53,6 +55,7 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
 
     public static final String NGFF_ENTITY_TYPE = "com.glencoesoftware.ngff:multiscales";
     public static final long NGFF_ENTITY_ID = 3;
+    public static final long NGFF_ENTITY_ID_V2 = 4;
 
     /** Max Plane Width. */
     protected final Integer maxPlaneWidth;
@@ -128,10 +131,15 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
      * @return the value of {@link ExternalInfo.lsid}, <code>null</code> if the object does not have
      *         an {@link ExternalInfo} with a valid {@link ExternalInfo.lsid} atttribute or if
      *         {@link ExternalInfo.entityType} is not equal to {@link NGFF_ENTITY_TYPE} or if
-     *         {@link ExternalInfo.entityId} is not equal to {@link NGFF_ENTITY_ID}.
+     *         {@link ExternalInfo.entityId} is not equal to {@link NGFF_ENTITY_ID}
+     *         or {@link NGFF_ENTITY_ID_V2}.
      */
     public String getUri(IObject object) {
-        return getUri(object, NGFF_ENTITY_TYPE, NGFF_ENTITY_ID);
+        String uri = getUri(object, NGFF_ENTITY_TYPE, NGFF_ENTITY_ID);
+        if (uri == null) {
+            uri = getUri(object, NGFF_ENTITY_TYPE, NGFF_ENTITY_ID_V2);
+        }
+        return uri;
     }
 
     /**
@@ -178,9 +186,18 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
         }
 
         String uri = externalInfo.getLsid();
+
         if (uri == null) {
             log.debug("{}:{} missing LSID", object.getClass().getSimpleName(), object.getId());
             return null;
+        }
+
+        if (targetEntityType == NGFF_ENTITY_TYPE
+            && targetEntityId == NGFF_ENTITY_ID
+            && uri.startsWith("s3://")) {
+            String toDecode = uri.replace("s3://", "");
+            // We need to URL decode the old-style NGFF LSIDs.
+            uri = "s3://" + URLDecoder.decode(toDecode, StandardCharsets.UTF_8);
         }
         return uri;
     }
