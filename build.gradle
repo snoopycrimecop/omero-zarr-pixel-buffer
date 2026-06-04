@@ -8,9 +8,8 @@ plugins {
 group = 'com.glencoesoftware.omero'
 version = '0.7.0-SNAPSHOT'
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+compileJava {
+    options.release = 11
 }
 
 repositories {
