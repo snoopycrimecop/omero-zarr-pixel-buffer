@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  * including local filesystem, HTTP/HTTPS endpoints, and S3-compatible object storage. It offers
  * convenience methods for accessing arrays and groups, as well as their metadata.
  *
- * <p> Supported URI schemes: </p>
+ * <p>Supported URI schemes: </p>
  * <ul>
  * <li>file:// or no scheme - Local filesystem storage</li>
  * <li>http:// or https:// - HTTP-based storage</li>
@@ -62,10 +62,10 @@ public class ZarrStore {
     /**
      * Constructs a ZarrLocation from the given path.
      *
-     * <p> The path must contain a .zarr extension. The constructor automatically detects the
+     * <p>The path must contain a .zarr extension. The constructor automatically detects the
      * storage backend based on the URI scheme and initializes the appropriate store. </p>
      *
-     * <p> For S3 URIs, authentication parameters can be provided as query parameters: </p>
+     * <p>For S3 URIs, authentication parameters can be provided as query parameters: </p>
      * <ul>
      * <li>anonymous - Use anonymous access</li>
      * <li>accessKeyId and secretAccessKey - Use basic credentials</li>
@@ -231,7 +231,7 @@ public class ZarrStore {
     /**
      * Extracts metadata from a Zarr array object.
      *
-     * <p> The returned map contains:</p>
+     * <p>The returned map contains:</p>
      * <ul>
      * <li>shape - The dimensions of the array</li>
      * <li>chunkShape - The chunk dimensions</li>
@@ -307,9 +307,7 @@ public class ZarrStore {
     /**
      * Extracts metadata attributes from a Zarr group object.
      *
-     * <p>
-     * This method handles both Zarr v2 and v3 group formats.
-     * </p>
+     * <p>This method handles both Zarr v2 and v3 group formats.</p>
      *
      * @param group the Group object to extract metadata from
      * @return a map containing the group's attributes
