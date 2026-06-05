@@ -56,13 +56,6 @@ public class ZarrPixelBufferTest {
     static final String NGFF05_HTTP = "https://public.ltd.ovh/output_v05.zarr/0";
     static final String NGFF04_HTTP = "https://public.ltd.ovh/output_v04.zarr/0";
 
-    static final String NGFF05_S3_AUTH = "s3://s3.ltd.ovh/testing/output_v05.zarr/0"
-        + "?accessKeyId=GK1d5c11b327c406ae0eaa6db9"
-        + "&secretAccessKey=4d791c7c6d4a93252f5a25d2d7f66856ec281cd2ae2ee373ecc8075b34a5ad32";
-    static final String NGFF04_S3_AUTH = "s3://s3.ltd.ovh/testing/output_v04.zarr/0"
-        + "?accessKeyId=GK1d5c11b327c406ae0eaa6db9"
-        + "&secretAccessKey=4d791c7c6d4a93252f5a25d2d7f66856ec281cd2ae2ee373ecc8075b34a5ad32";
-
     static final String NGFF05_S3_ANON = "s3://public.ltd.ovh/output_v05.zarr/0/?anonymous=true";
     static final String NGFF04_S3_ANON = "s3://public.ltd.ovh/output_v04.zarr/0/?anonymous=true";
 
@@ -105,18 +98,6 @@ public class ZarrPixelBufferTest {
     public void testNGFF04HTTP() throws Exception {
         System.out.println("Testing NGFF04HTTP");
         test(NGFF04_HTTP);
-    }
-
-    @Test
-    public void testNGFF05S3Auth() throws Exception {
-        System.out.println("Testing testNGFF05S3Auth");
-        test(NGFF05_S3_AUTH);
-    }
-
-    @Test
-    public void testNGFF04S3Auth() throws Exception {
-        System.out.println("Testing testNGFF04S3Auth");
-        test(NGFF04_S3_AUTH);
     }
 
     @Test

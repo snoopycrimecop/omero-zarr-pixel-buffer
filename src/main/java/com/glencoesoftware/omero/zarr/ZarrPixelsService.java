@@ -282,9 +282,9 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
                 log.debug("No OME-NGFF root");
                 return null;
             }
-            ZarrStore store = new ZarrStore(uri);
-            log.info("Using ZarrStore: " + store);
             try {
+                ZarrStore store = new ZarrStore(uri);
+                log.info("Using ZarrStore: " + store);
                 ZarrPixelBuffer v = new ZarrPixelBuffer(pixels, store, maxPlaneWidth,
                     maxPlaneHeight, zarrMetadataCache, zarrArrayCache);
                 log.info("Using OME-NGFF pixel buffer");

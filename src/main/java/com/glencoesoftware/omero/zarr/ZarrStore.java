@@ -38,10 +38,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -61,6 +63,8 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  * </ul>
  */
 public class ZarrStore {
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ZarrStore.class);
 
     /** The underlying store handle for accessing Zarr data. */
     StoreHandle store;
@@ -161,16 +165,15 @@ public class ZarrStore {
                 .build();
             clientBuilder.serviceConfiguration(s3Config);
 
+            assertNoAwsSystemEnvCredentials();
+
             if (params.containsKey("anonymous")) {
                 clientBuilder.credentialsProvider(AnonymousCredentialsProvider.create());
-            } else if (params.containsKey("accessKeyId")
-                && params.containsKey("secretAccessKey")) {
-                AwsBasicCredentials credentials = AwsBasicCredentials
-                    .create(params.get("accessKeyId"), params.get("secretAccessKey"));
-                clientBuilder.credentialsProvider(StaticCredentialsProvider.create(credentials));
             } else if (params.containsKey("profile")) {
                 clientBuilder.credentialsProvider(ProfileCredentialsProvider
                     .create(params.get("profile")));
+            } else {
+                clientBuilder.credentialsProvider(InstanceProfileCredentialsProvider.create());
             }
             if (params.containsKey("region")) {
                 clientBuilder.region(Region.of(params.get("region")));
@@ -188,6 +191,21 @@ public class ZarrStore {
             zarrVersion = "2";
         } else if (group instanceof dev.zarr.zarrjava.v3.Group) {
             zarrVersion = "3";
+        }
+    }
+
+    private void assertNoAwsSystemEnvCredentials() {
+        // If AWS Environment or System Properties are set, throw an exception
+        // so users will know they are not supported
+        if (System.getenv("AWS_ACCESS_KEY_ID") != null
+                || System.getenv("AWS_SECRET_ACCESS_KEY") != null
+                || System.getenv("AWS_SESSION_TOKEN") != null
+                || System.getProperty("aws.accessKeyId") != null
+                || System.getProperty("aws.secretAccessKey") != null) {
+            throw new RuntimeException("AWS credentials supplied by environment variables"
+                    + " or Java system properties are not supported."
+                    + " Please use either named profiles or instance"
+                    + " profile credentials.");
         }
     }
 
