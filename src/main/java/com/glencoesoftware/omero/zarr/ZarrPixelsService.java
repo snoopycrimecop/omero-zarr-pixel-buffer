@@ -55,7 +55,7 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
 
     public static final String NGFF_ENTITY_TYPE = "com.glencoesoftware.ngff:multiscales";
     public static final long NGFF_ENTITY_ID = 3;
-    public static final long NGFF_ENTITY_ID_V2 = 4;
+    public static final long NGFF_ENTITY_ID_ZARR_V3 = 4;
 
     /** Max Plane Width. */
     protected final Integer maxPlaneWidth;
@@ -132,12 +132,12 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
      *         an {@link ExternalInfo} with a valid {@link ExternalInfo.lsid} atttribute or if
      *         {@link ExternalInfo.entityType} is not equal to {@link NGFF_ENTITY_TYPE} or if
      *         {@link ExternalInfo.entityId} is not equal to {@link NGFF_ENTITY_ID}
-     *         or {@link NGFF_ENTITY_ID_V2}.
+     *         or {@link NGFF_ENTITY_ID_ZARR_V3}.
      */
     public String getUri(IObject object) {
         String uri = getUri(object, NGFF_ENTITY_TYPE, NGFF_ENTITY_ID);
         if (uri == null) {
-            uri = getUri(object, NGFF_ENTITY_TYPE, NGFF_ENTITY_ID_V2);
+            uri = getUri(object, NGFF_ENTITY_TYPE, NGFF_ENTITY_ID_ZARR_V3);
         }
         return uri;
     }
@@ -180,8 +180,9 @@ public class ZarrPixelsService extends ome.io.nio.PixelsService {
             return null;
         }
         if (!entityId.equals(targetEntityId)) {
-            log.debug("{}:{} unsupported ExternalInfo entityId {}",
-                object.getClass().getSimpleName(), object.getId(), entityId);
+            log.debug("{}:{} ExternalInfo entityId {} did not match target id {}",
+                object.getClass().getSimpleName(), object.getId(), entityId,
+                targetEntityId);
             return null;
         }
 
