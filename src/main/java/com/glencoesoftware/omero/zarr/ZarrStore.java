@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -167,11 +168,13 @@ public class ZarrStore {
 
             if (params.containsKey("anonymous")) {
                 clientBuilder.credentialsProvider(AnonymousCredentialsProvider.create());
-            } else if (params.containsKey("profile")) {
-                clientBuilder.credentialsProvider(ProfileCredentialsProvider
-                    .create(params.get("profile")));
             } else {
-                clientBuilder.credentialsProvider(InstanceProfileCredentialsProvider.create());
+                clientBuilder.credentialsProvider(
+                        AwsCredentialsProviderChain.builder()
+                        .addCredentialsProvider(ProfileCredentialsProvider
+                                .create(params.get("profile")))
+                        .addCredentialsProvider(
+                                InstanceProfileCredentialsProvider.create()).build());
             }
             if (params.containsKey("region")) {
                 clientBuilder.region(Region.of(params.get("region")));
