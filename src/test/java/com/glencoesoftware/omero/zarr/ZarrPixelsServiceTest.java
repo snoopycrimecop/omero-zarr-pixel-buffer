@@ -18,14 +18,16 @@
 
 package com.glencoesoftware.omero.zarr;
 
-import static omero.rtypes.rdouble;
 import static omero.rtypes.rlong;
 import static omero.rtypes.rstring;
 
-import com.glencoesoftware.omero.zarr.ZarrPixelsService;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import omero.ApiUsageException;
 import omero.model.ExternalInfo;
@@ -47,11 +49,31 @@ public class ZarrPixelsServiceTest {
     private String uuid = UUID.randomUUID().toString();
     private String imageUri = "/data/ngff/image.zarr";
     private String labelUri = imageUri + "/0/labels/" + uuid;
+    private String urlUnsafeBucketAndKey =
+            "data/ngff dir/image&()*?%20test.zarr?anonymous=true";
     private Image image;
     private Mask mask;
     private ome.model.IObject object;
     private static final String ENTITY_TYPE = "com.glencoesoftware.ngff:multiscales";
     private static final long ENTITY_ID = 3;
+
+    private String quoteFullPath(String path) {
+        String[] segments = path.split("/");
+        List<String> quotedSegments = new ArrayList<String>();
+        for (String s : segments) {
+            if (!s.isEmpty()) {
+                // URLEncoder.encode will % encode all the characters which cause
+                // a URISyntaxException if present in the URI constructor except for " " which is
+                // encoded as "+". Because "+" IS % encoded, we can safely assume that any
+                // remaining "+" characters were formerly spaces and replace them. Space is the
+                // ONLY character which is changed but not % encoded. See
+                // https://docs.oracle.com/javase%2F7%2Fdocs%2Fapi%2F%2F/java/net/URLEncoder.html
+                quotedSegments.add(URLEncoder.encode(s, StandardCharsets.UTF_8)
+                        .replaceAll("\\+", "%20"));
+            }
+        }
+        return String.join("/", quotedSegments);
+    }
 
     /** Initializes a ZarrPixelsService with temporary directories. */
     @Before
@@ -60,8 +82,12 @@ public class ZarrPixelsServiceTest {
         pixelsDir.deleteOnExit();
         File memoDir = Files.createTempDirectory("memoizer").toFile();
         memoDir.deleteOnExit();
-        pixelsService = new ZarrPixelsService(
-            pixelsDir.getAbsolutePath(), false, memoDir, 0L, null, null, null, null, 0, 0, 0);
+        try {
+            pixelsService = new ZarrPixelsService(
+                pixelsDir.getAbsolutePath(), false, memoDir, 0L, null, null, null, null, 0, 0, 0);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
         mask = new MaskI();
         image = new ImageI();
     }
@@ -91,6 +117,17 @@ public class ZarrPixelsServiceTest {
         object = (ome.model.core.Image) new IceMapper().reverse(image);
         Assert.assertEquals(pixelsService.getUri(object), imageUri);
         Assert.assertEquals(pixelsService.getUri(object, ENTITY_TYPE, ENTITY_ID), imageUri);
+    }
+
+    @Test
+    public void testEncoded() throws ApiUsageException, IOException {
+        String protocolAndHost = "s3://s3.us-east-1.amazonaws.com/";
+        String encodedUnsafeUri = quoteFullPath(urlUnsafeBucketAndKey);
+        addExternalInfo(image, ENTITY_ID, ENTITY_TYPE, protocolAndHost + encodedUnsafeUri, uuid);
+        object = (ome.model.core.Image) new IceMapper().reverse(image);
+        Assert.assertEquals(pixelsService.getUri(object), protocolAndHost + urlUnsafeBucketAndKey);
+        Assert.assertEquals(pixelsService.getUri(object, ENTITY_TYPE, ENTITY_ID),
+                protocolAndHost + urlUnsafeBucketAndKey);
     }
 
     @Test

@@ -34,14 +34,23 @@ repositories {
 
 dependencies {
     api 'org.openmicroscopy:omero-blitz:5.8.4'
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
-    implementation 'dev.zarr:jzarr:0.4.2'
-    implementation 'org.lasersonlab:s3fs:2.2.3'
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.659'
-    implementation 'org.apache.tika:tika-core:1.28.5'
 
+    implementation "dev.zarr:zarr-java:0.1.3"
+
+    implementation "ome:formats-api:8.5.0"
+    implementation "software.amazon.awssdk:aws-core:2.34.6"
+    implementation "software.amazon.awssdk:sdk-core:2.34.6"
+    implementation "software.amazon.awssdk:retries:2.34.6"
+    implementation "software.amazon.awssdk:url-connection-client:2.34.6"
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+    implementation 'edu.ucar:cdm-core:5.9.1'
+    implementation 'org.perf4j:perf4j:0.9.16'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+
+    testImplementation "ome:formats-bsd:8.5.0"
+    testImplementation 'junit:junit:4.13.2'
     testImplementation 'info.picocli:picocli:4.7.5'
-    testImplementation 'com.glencoesoftware:bioformats2raw:0.11.0'
+    testImplementation 'com.glencoesoftware:bioformats2raw:0.12.0'
 }
 
 test {
