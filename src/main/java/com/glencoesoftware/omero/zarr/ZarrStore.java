@@ -121,35 +121,41 @@ public class ZarrStore {
             int sep = path.lastIndexOf("/");
             String storePath = path.substring(0, sep);
             String rest = path.substring(sep + 1);
+            // TODO: Fix names with "?" characters
             this.name = path.substring(pathToZarr.lastIndexOf("/") + 1);
             if (this.name.contains("?")) {
                 this.name = this.name.substring(0, this.name.indexOf("?"));
             }
+
             store = new HttpStore(storePath).resolve(rest);
             iface = HttpStore.class;
         } else if (path.startsWith("s3")) {
-            String[] tmp = path.replaceFirst("s3://", "").replaceAll("\\?.+", "").split("/");
+            // Remove all query parameters
+            String afterZarrExtn = path.substring(zarrIndex + 5);
+            String afterZarrExtnNoQueries = afterZarrExtn.replaceAll("\\?.+=.+", "");
+            String[] tmp = (pathToZarr + afterZarrExtnNoQueries)
+                    .replaceFirst("s3://", "").split("/");
             final String host = tmp[0];
             final String bucket = tmp[1];
             final String[] rest = Arrays.copyOfRange(tmp, 2, tmp.length);
-            this.name = path.substring(pathToZarr.lastIndexOf("/") + 1);
-            if (this.name.contains("?")) {
-                this.name = this.name.substring(0, this.name.indexOf("?"));
-            }
+            this.name = String.join("/", rest);
             // Extract URL parameters for authentication
             Map<String, String> params = new HashMap<>();
             // TODO: Is there a better way for parsing query parameters
             // in the presence of URL unsafe characters?
-            String query = orgPath.substring(orgPath.lastIndexOf("?") + 1);
-            if (query != null) {
-                String[] pairs = query.split("&");
-                for (String pair : pairs) {
-                    int idx = pair.indexOf("=");
-                    if (idx > 0) {
-                        params.put(pair.substring(0, idx), pair.substring(idx + 1));
+            String[] afterZarrSplit = afterZarrExtn.split("/");
+            String finalPart = afterZarrSplit[afterZarrSplit.length - 1];
+            if (finalPart.matches(".*\\?.+=.+")) {
+                String query = finalPart.substring(finalPart.lastIndexOf("?") + 1);
+                if (query != null) {
+                    String[] pairs = query.split("&");
+                    for (String pair : pairs) {
+                        int idx = pair.indexOf("=");
+                        if (idx > 0) {
+                            params.put(pair.substring(0, idx), pair.substring(idx + 1));
+                        }
                     }
                 }
-
             }
 
             URI endpoint = new URI("https://" + host);
