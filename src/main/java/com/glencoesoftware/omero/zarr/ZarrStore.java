@@ -130,23 +130,18 @@ public class ZarrStore {
             store = new HttpStore(storePath).resolve(rest);
             iface = HttpStore.class;
         } else if (path.startsWith("s3")) {
-            // Remove all query parameters
-            String afterZarrExtn = path.substring(zarrIndex + 5);
-            String afterZarrExtnNoQueries = afterZarrExtn.replaceAll("\\?.+=.+", "");
-            String[] tmp = (pathToZarr + afterZarrExtnNoQueries)
-                    .replaceFirst("s3://", "").split("/");
+            String[] tmp = path.replaceFirst("s3://", "").split("/");
             final String host = tmp[0];
             final String bucket = tmp[1];
             final String[] rest = Arrays.copyOfRange(tmp, 2, tmp.length);
+            // Remove all query parameters
+            String rawFinalPart = rest[rest.length - 1];
+            rest[rest.length - 1] = rawFinalPart.replaceAll("\\?.+=.+", "");
             this.name = String.join("/", rest);
             // Extract URL parameters for authentication
             Map<String, String> params = new HashMap<>();
-            // TODO: Is there a better way for parsing query parameters
-            // in the presence of URL unsafe characters?
-            String[] afterZarrSplit = afterZarrExtn.split("/");
-            String finalPart = afterZarrSplit[afterZarrSplit.length - 1];
-            if (finalPart.matches(".*\\?.+=.+")) {
-                String query = finalPart.substring(finalPart.lastIndexOf("?") + 1);
+            if (rawFinalPart.matches(".*\\?.+=.+")) {
+                String query = rawFinalPart.substring(rawFinalPart.lastIndexOf("?") + 1);
                 if (query != null) {
                     String[] pairs = query.split("&");
                     for (String pair : pairs) {
