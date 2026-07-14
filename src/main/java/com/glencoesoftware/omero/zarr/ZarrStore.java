@@ -65,6 +65,10 @@ public class ZarrStore {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ZarrStore.class);
 
+    private static final String QUERY_REGEX = "\\?.+=.+";
+
+    private static final String PATH_WITH_QUERY_REGEX = ".*" + QUERY_REGEX;
+
     /** The underlying store handle for accessing Zarr data. */
     StoreHandle store;
 
@@ -121,35 +125,36 @@ public class ZarrStore {
             int sep = path.lastIndexOf("/");
             String storePath = path.substring(0, sep);
             String rest = path.substring(sep + 1);
+            // TODO: Fix names with "?" characters
             this.name = path.substring(pathToZarr.lastIndexOf("/") + 1);
             if (this.name.contains("?")) {
                 this.name = this.name.substring(0, this.name.indexOf("?"));
             }
+
             store = new HttpStore(storePath).resolve(rest);
             iface = HttpStore.class;
         } else if (path.startsWith("s3")) {
-            String[] tmp = path.replaceFirst("s3://", "").replaceAll("\\?.+", "").split("/");
+            String[] tmp = path.replaceFirst("s3://", "").split("/");
             final String host = tmp[0];
             final String bucket = tmp[1];
             final String[] rest = Arrays.copyOfRange(tmp, 2, tmp.length);
-            this.name = path.substring(pathToZarr.lastIndexOf("/") + 1);
-            if (this.name.contains("?")) {
-                this.name = this.name.substring(0, this.name.indexOf("?"));
-            }
+            // Remove all query parameters
+            String rawFinalPart = rest[rest.length - 1];
+            rest[rest.length - 1] = removeQuery(rawFinalPart);
+            this.name = String.join("/", rest);
             // Extract URL parameters for authentication
             Map<String, String> params = new HashMap<>();
-            // TODO: Is there a better way for parsing query parameters
-            // in the presence of URL unsafe characters?
-            String query = orgPath.substring(orgPath.lastIndexOf("?") + 1);
-            if (query != null) {
-                String[] pairs = query.split("&");
-                for (String pair : pairs) {
-                    int idx = pair.indexOf("=");
-                    if (idx > 0) {
-                        params.put(pair.substring(0, idx), pair.substring(idx + 1));
+            if (containsQueryString(rawFinalPart)) {
+                String query = rawFinalPart.substring(rawFinalPart.lastIndexOf("?") + 1);
+                if (query != null) {
+                    String[] pairs = query.split("&");
+                    for (String pair : pairs) {
+                        int idx = pair.indexOf("=");
+                        if (idx > 0) {
+                            params.put(pair.substring(0, idx), pair.substring(idx + 1));
+                        }
                     }
                 }
-
             }
 
             URI endpoint = new URI("https://" + host);
@@ -193,6 +198,28 @@ public class ZarrStore {
         } else if (group instanceof dev.zarr.zarrjava.v3.Group) {
             zarrVersion = "3";
         }
+    }
+
+    /**
+     * A method to remove a query-parameter-like segment from a string.
+     *
+     * @param path The String to remove the parameter from
+     * @return The String without the query parameter segment if found
+     *         otherwise return path
+     */
+    public static String removeQuery(String path) {
+        return path.replaceAll(QUERY_REGEX, "");
+    }
+
+    /**
+     * A method which returns true if the provided string contains a query segment
+     * (i.e. matches the regular expression), otherwise returns false.
+     *
+     * @param path The String to check
+     * @return True if path contains a query segment, otherwise false
+     */
+    public static Boolean containsQueryString(String path) {
+        return path.matches(PATH_WITH_QUERY_REGEX);
     }
 
     private void assertNoAwsSystemEnvCredentials() {
