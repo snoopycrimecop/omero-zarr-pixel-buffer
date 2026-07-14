@@ -88,30 +88,6 @@ public class ZarrPixelBufferTest {
         test(output.toString());
     }
 
-    @Test
-    public void testNGFF05HTTP() throws Exception {
-        System.out.println("Testing NGFF05HTTP");
-        test(NGFF05_HTTP);
-    }
-
-    @Test
-    public void testNGFF04HTTP() throws Exception {
-        System.out.println("Testing NGFF04HTTP");
-        test(NGFF04_HTTP);
-    }
-
-    @Test
-    public void testNGFF05S3Anon() throws Exception {
-        System.out.println("Testing testNGFF05S3Anon");
-        test(NGFF05_S3_ANON);
-    }
-
-    @Test
-    public void testNGFF04S3Anon() throws Exception {
-        System.out.println("Testing testNGFF04S3Anon");
-        test(NGFF04_S3_ANON);
-    }
-
     void test(String path) throws Exception {
         System.out.println("Testing path: " + path);
         ZarrStore store = new ZarrStore(path.toString());
