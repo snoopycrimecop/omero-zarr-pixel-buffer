@@ -202,13 +202,23 @@ public class ZarrStore {
 
     /**
      * A method to remove a query-parameter-like segment from a string.
+     * this method assumes there will be no ? characters in the parameters.
+     * This means the method will only search from the last instance of the "?"
+     * character until the end of the string.
      *
      * @param path The String to remove the parameter from
      * @return The String without the query parameter segment if found
      *         otherwise return path
      */
     public static String removeQuery(String path) {
-        return path.replaceAll(QUERY_REGEX, "");
+        int lastQuestionMarkIdx = path.lastIndexOf("?");
+        if (lastQuestionMarkIdx != -1) {
+            String potentialQuery = path.substring(lastQuestionMarkIdx);
+            if (potentialQuery.matches(QUERY_REGEX)) {
+                return path.substring(0, lastQuestionMarkIdx);
+            }
+        }
+        return path;
     }
 
     /**

@@ -11,17 +11,26 @@ public class ZarrStoreTest {
         Assert.assertEquals("/my/test/path",
             ZarrStore.removeQuery("/my/test/path?test=zarr.zarr"));
 
-        Assert.assertEquals("/my/test/path",
+        Assert.assertEquals("/my/test/path?query=test1",
             ZarrStore.removeQuery("/my/test/path?query=test1?query=test2"));
 
         Assert.assertEquals("/my/test/path",
                 ZarrStore.removeQuery("/my/test/path?/more/path/stuff/query=test1"));
 
-        Assert.assertEquals("/my/test/path",
+        Assert.assertEquals("/my/test/path?/more?/path?/stuff",
                 ZarrStore.removeQuery("/my/test/path?/more?/path?/stuff?/query=test1"));
 
         Assert.assertEquals("/my/test/path/myfile.zarr",
                 ZarrStore.removeQuery("/my/test/path/myfile.zarr?anonymous=true"));
+
+        Assert.assertEquals("/my/test/path/myfile=?withquestionmark.zarr",
+                ZarrStore.removeQuery(
+                        "/my/test/path/myfile=?withquestionmark.zarr?anonymous=true"));
+
+
+        Assert.assertEquals("/my/test/path/myfile=?withquestionmark.zarr",
+                ZarrStore.removeQuery(
+                        "/my/test/path/myfile=?withquestionmark.zarr?profile=test= name"));
 
         Assert.assertEquals("", ZarrStore.removeQuery("?query=test1"));
     }
