@@ -7,70 +7,63 @@ import org.junit.Test;
 public class ZarrStoreTest {
 
     @Test
-    public void testRemoveQuery() {
-        Assert.assertEquals("/my/test/path",
-            ZarrStore.removeQuery("/my/test/path?test=zarr.zarr"));
+    public void testSplitOnQuery() {
+        String[] pathAndQuery = ZarrStore.splitOnQuery("/my/test/path?test=zarr.zarr");
+        Assert.assertEquals("/my/test/path", pathAndQuery[0]);
+        Assert.assertEquals("?test=zarr.zarr", pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path?query=test1",
-            ZarrStore.removeQuery("/my/test/path?query=test1?query=test2"));
+        pathAndQuery = ZarrStore.splitOnQuery("/my/test/path?query=test1?query=test2");
+        Assert.assertEquals("/my/test/path?query=test1", pathAndQuery[0]);
+        Assert.assertEquals("?query=test2", pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path",
-                ZarrStore.removeQuery("/my/test/path?/more/path/stuff/query=test1"));
+        pathAndQuery = ZarrStore.splitOnQuery("/my/test/path?/more/path/stuff/query=test1");
+        Assert.assertEquals("/my/test/path", pathAndQuery[0]);
+        Assert.assertEquals("?/more/path/stuff/query=test1", pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path?/more?/path?/stuff",
-                ZarrStore.removeQuery("/my/test/path?/more?/path?/stuff?/query=test1"));
+        pathAndQuery = ZarrStore.splitOnQuery("/my/test/path/myfile.zarr?anonymous=true");
+        Assert.assertEquals("/my/test/path/myfile.zarr", pathAndQuery[0]);
+        Assert.assertEquals("?anonymous=true", pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path/myfile.zarr",
-                ZarrStore.removeQuery("/my/test/path/myfile.zarr?anonymous=true"));
+        pathAndQuery = ZarrStore.splitOnQuery(
+                "/my/test/path/myfile=?withquestionmark.zarr?anonymous=true");
+        Assert.assertEquals("/my/test/path/myfile=?withquestionmark.zarr", pathAndQuery[0]);
+        Assert.assertEquals("?anonymous=true", pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path/myfile=?withquestionmark.zarr",
-                ZarrStore.removeQuery(
-                        "/my/test/path/myfile=?withquestionmark.zarr?anonymous=true"));
+        pathAndQuery = ZarrStore.splitOnQuery(
+                "/my/test/path/myfile=?withquestionmark.zarr?profile=test= name");
+        Assert.assertEquals("/my/test/path/myfile=?withquestionmark.zarr", pathAndQuery[0]);
+        Assert.assertEquals("?profile=test= name", pathAndQuery[1]);
 
-
-        Assert.assertEquals("/my/test/path/myfile=?withquestionmark.zarr",
-                ZarrStore.removeQuery(
-                        "/my/test/path/myfile=?withquestionmark.zarr?profile=test= name"));
-
-        Assert.assertEquals("", ZarrStore.removeQuery("?query=test1"));
+        pathAndQuery = ZarrStore.splitOnQuery("?query=test1");
+        Assert.assertEquals("", pathAndQuery[0]);
+        Assert.assertEquals("?query=test1", pathAndQuery[1]);
     }
 
     @Test
     public void testRemoveNothing() {
 
-        Assert.assertEquals("", ZarrStore.removeQuery(""));
+        String[] pathAndQuery = ZarrStore.splitOnQuery("");
+        Assert.assertEquals("", pathAndQuery[0]);
+        Assert.assertNull(pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path?test-zarr.zarr",
-                ZarrStore.removeQuery("/my/test/path?test-zarr.zarr"));
+        pathAndQuery = ZarrStore.splitOnQuery("/my/test/path?test-zarr.zarr");
+        Assert.assertEquals("/my/test/path?test-zarr.zarr", pathAndQuery[0]);
+        Assert.assertNull(pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path=test?zarr.zarr",
-                ZarrStore.removeQuery("/my/test/path=test?zarr.zarr"));
+        pathAndQuery = ZarrStore.splitOnQuery("/my/test/path=test?zarr.zarr");
+        Assert.assertEquals("/my/test/path=test?zarr.zarr", pathAndQuery[0]);
+        Assert.assertNull(pathAndQuery[1]);
 
-        Assert.assertEquals("/my/test/path.zarr",
-                ZarrStore.removeQuery("/my/test/path.zarr"));
+        pathAndQuery = ZarrStore.splitOnQuery("nothing/in/the/middle?=test");
+        Assert.assertEquals("nothing/in/the/middle?=test", pathAndQuery[0]);
+        Assert.assertNull(pathAndQuery[1]);
+
+        pathAndQuery = ZarrStore.splitOnQuery("nothing/at/the/end?=");
+        Assert.assertEquals("nothing/at/the/end?=", pathAndQuery[0]);
+        Assert.assertNull(pathAndQuery[1]);
+
+        pathAndQuery = ZarrStore.splitOnQuery("/my/test/path.zarr");
+        Assert.assertEquals("/my/test/path.zarr", pathAndQuery[0]);
+        Assert.assertNull(pathAndQuery[1]);
     }
-
-    @Test
-    public void testMatch() {
-        Assert.assertTrue(ZarrStore.containsQueryString("?query=only"));
-        Assert.assertTrue(ZarrStore.containsQueryString("path?matches=query"));
-        Assert.assertTrue(ZarrStore.containsQueryString("my/zarr/path.zarr?matches=query"));
-        Assert.assertTrue(ZarrStore.containsQueryString(
-                "my/zarr/path.zarr/?te/st?1/23?matches=query=test"));
-        Assert.assertTrue(ZarrStore.containsQueryString(
-                "   my/zarr/path with spaces.zarr?  weird = query   "));
-        Assert.assertTrue(ZarrStore.containsQueryString(" ? = "));
-    }
-
-    @Test
-    public void testNoMatch() {
-        Assert.assertFalse(ZarrStore.containsQueryString(""));
-        Assert.assertFalse(ZarrStore.containsQueryString("?="));
-        Assert.assertFalse(ZarrStore.containsQueryString("?=afteronly"));
-        Assert.assertFalse(ZarrStore.containsQueryString("beforeonly?="));
-        Assert.assertFalse(ZarrStore.containsQueryString("?middleonly="));
-        Assert.assertFalse(ZarrStore.containsQueryString("my/zarr/path.zarr"));
-        Assert.assertFalse(ZarrStore.containsQueryString("my/zarr/path=test?zarr"));
-    }
-
 }
