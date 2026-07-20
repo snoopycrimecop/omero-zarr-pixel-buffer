@@ -140,19 +140,21 @@ public class ZarrStore {
             final String[] rest = Arrays.copyOfRange(tmp, 2, tmp.length);
             // Remove all query parameters
             String rawFinalPart = rest[rest.length - 1];
-            rest[rest.length - 1] = removeQuery(rawFinalPart);
+            String[] pathAndQuery = splitOnQuery(rawFinalPart);
+            rest[rest.length - 1] = pathAndQuery[0];
             this.name = String.join("/", rest);
             // Extract URL parameters for authentication
             Map<String, String> params = new HashMap<>();
-            if (containsQueryString(rawFinalPart)) {
-                String query = rawFinalPart.substring(rawFinalPart.lastIndexOf("?") + 1);
-                if (query != null) {
-                    String[] pairs = query.split("&");
-                    for (String pair : pairs) {
-                        int idx = pair.indexOf("=");
-                        if (idx > 0) {
-                            params.put(pair.substring(0, idx), pair.substring(idx + 1));
-                        }
+            String query = pathAndQuery[1];
+            if (query != null) {
+                if (query.startsWith("?")) {
+                    query = query.substring(1);
+                }
+                String[] pairs = query.split("&");
+                for (String pair : pairs) {
+                    int idx = pair.indexOf("=");
+                    if (idx > 0) {
+                        params.put(pair.substring(0, idx), pair.substring(idx + 1));
                     }
                 }
             }
@@ -201,35 +203,28 @@ public class ZarrStore {
     }
 
     /**
-     * A method to remove a query-parameter-like segment from a string.
+     * A method to split a query-parameter-like segment from a string.
      * this method assumes there will be no ? characters in the parameters.
      * This means the method will only search from the last instance of the "?"
      * character until the end of the string.
      *
-     * @param path The String to remove the parameter from
-     * @return The String without the query parameter segment if found
-     *         otherwise return path
+     * @param uri The String to remove the parameter from
+     * @return A String array of size 2. First element is the path without the query
+     *         (or entire path if no query is found) and the second is the query string
+     *         or {@code null} if no query is found.
      */
-    public static String removeQuery(String path) {
-        int lastQuestionMarkIdx = path.lastIndexOf("?");
+    public static String[] splitOnQuery(String uri) {
+        String[] pathAndQuery = new String[2];
+        pathAndQuery[0] = uri;
+        int lastQuestionMarkIdx = uri.lastIndexOf("?");
         if (lastQuestionMarkIdx != -1) {
-            String potentialQuery = path.substring(lastQuestionMarkIdx);
+            String potentialQuery = uri.substring(lastQuestionMarkIdx);
             if (potentialQuery.matches(QUERY_REGEX)) {
-                return path.substring(0, lastQuestionMarkIdx);
+                pathAndQuery[0] = uri.substring(0, lastQuestionMarkIdx);
+                pathAndQuery[1] = potentialQuery;
             }
         }
-        return path;
-    }
-
-    /**
-     * A method which returns true if the provided string contains a query segment
-     * (i.e. matches the regular expression), otherwise returns false.
-     *
-     * @param path The String to check
-     * @return True if path contains a query segment, otherwise false
-     */
-    public static Boolean containsQueryString(String path) {
-        return path.matches(PATH_WITH_QUERY_REGEX);
+        return pathAndQuery;
     }
 
     private void assertNoAwsSystemEnvCredentials() {
