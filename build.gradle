@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    api 'org.openmicroscopy:omero-blitz:5.8.4'
+    api 'org.openmicroscopy:omero-blitz:5.8.5'
 
     implementation "dev.zarr:zarr-java:0.2.0"
 
