@@ -208,10 +208,9 @@ public class ZarrPixelBuffer implements PixelBuffer {
         // adjust the shape/offset for the Z coordinate only
         // this ensures that the correct Zs are read from the correct offsets
         // since the requested shape/offset may not match the underlying array
-        long originalZIndex = 1;
         if (axesOrder.containsKey(Axis.Z)) {
-            originalZIndex = offset[axesOrder.get(Axis.Z)];
             if (getSizeZ() != getTrueSizeZ()) {
+                int originalZIndex = (int) offset[axesOrder.get(Axis.Z)];
                 offset[axesOrder.get(Axis.Z)] = zIndexMap.get(originalZIndex);
                 shape[axesOrder.get(Axis.Z)] = 1;
             }
